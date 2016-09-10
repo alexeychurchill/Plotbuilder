@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Plot builder</string>
+    <!-- EnterDataActivity -->
+    <string name="et_function_caption">Function:</string>
+    <string name="et_function_hint">Your function…</string>
+    <string name="et_from_caption">From:</string>
+    <string name="et_from_hint">[a;</string>
+    <string name="et_to_caption">To:</string>
+    <string name="et_to_hint">…b]</string>
+    <string name="btn_build_text">Build</string>
+</resources>
