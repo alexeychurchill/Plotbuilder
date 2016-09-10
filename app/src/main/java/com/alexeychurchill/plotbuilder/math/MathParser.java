@@ -4,8 +4,10 @@ import android.util.Log;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Mathematical parser.
@@ -13,29 +15,35 @@ import java.util.List;
 
 public class MathParser {
     public static final String LOG_TAG = "MathParser";
-    private final String equationSource;
+    private List<String> postfix;
+    private Map<String, Double> variables = new HashMap<>();
 
-    public MathParser(String equationSource) {
-        this.equationSource = equationSource;
-    }
-
-    public boolean parse() {
-        List<String> tokenList = splitTokens(equationSource);
-        //...
-//        for (String token : tokenList) {
-//            Log.d(LOG_TAG, "Token: ".concat(token));
-//        }
-        //...
-//        Log.d(LOG_TAG, "----------------------------------");
-        List<String> postfixList = postfixNotation(tokenList);
-        for (String token : postfixList) {
-            Log.d(LOG_TAG, "Postfix token: ".concat(token));
+    public boolean parse(String source) {
+        List<String> tokenList = splitTokens(source);
+        if (tokenList == null) {
+            return false;
         }
-        //...
-        return true;
+        postfix = postfixNotation(tokenList);
+        return postfix != null;
     }
+
+    public void setVariable(String name, double value) {
+        variables.put(name, value);
+    }
+
+    public void unsetVariable(String name) {
+        variables.remove(name);
+    }
+
+    public double getVariable(String name) {
+        return variables.get(name);
+    }
+
+    //TODO: Calculation
 
     private List<String> postfixNotation(List<String> tokenList) {
+        //TODO: Error checking
+        //TODO: String tokens -> good tokens
         List<String> postfix = new LinkedList<>();
         Deque<String> stack = new ArrayDeque<>();
         String buffer = "";
