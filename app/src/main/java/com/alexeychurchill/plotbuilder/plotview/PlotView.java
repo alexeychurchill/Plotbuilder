@@ -213,17 +213,56 @@ public class PlotView extends View {
     }
 
     private void drawXAxis(Canvas canvas) {
-        //...
-    }
-
-    private void drawYAxis(Canvas canvas) {
-        double yAxisLeft = mConverter.worldToScreenX(0.0);
+        int top = mConverter.worldToScreenY(0.0);
+        if (top < 0 || top >= canvas.getHeight()) {
+            return;
+        }
         mPaint.setColor(mAxesColor);
         mPaint.setStrokeWidth(mAxesWidth);
         //Drawing axis
-        canvas.drawLine((float) yAxisLeft, 0.0F, (float) yAxisLeft, canvas.getHeight(), mPaint);
+        canvas.drawLine(0.0F, (float) top, canvas.getWidth(), (float) top, mPaint);
         //Drawing arrow
-        canvas.drawLine((float) yAxisLeft, 0.0F, (float) yAxisLeft - mArrowSize / 2.0F, mArrowSize / 2.0F, mPaint); //Left
-        canvas.drawLine((float) yAxisLeft, 0.0F, (float) yAxisLeft + mArrowSize / 2.0F, mArrowSize / 2.0F, mPaint); //Right
+        canvas.drawLine(canvas.getWidth(), (float) top,
+                canvas.getWidth() - mArrowSize / 2.0F, (float) top - mArrowSize / 2.0F,
+                mPaint); //Top
+        canvas.drawLine(canvas.getWidth(), (float) top,
+                canvas.getWidth() - mArrowSize / 2.0F, (float) top + mArrowSize / 2.0F,
+                mPaint); //Bottom
+        //Drawing ticks
+        if (mTicksNeeded) {
+            int ticksStart = (int) Math.floor(mConverter.screenToWorldByX(0));
+            int ticksStop = (int) Math.ceil(mConverter.screenToWorldByX(canvas.getWidth()));
+            for (int tick = ticksStart; tick < ticksStop; tick++) {
+                double tickLeft = mConverter.worldToScreenX(tick);
+                canvas.drawLine((float) tickLeft, (float) top - mTickSize / 2.0F,
+                        (float) tickLeft, (float) top + mTickSize / 2.0F,
+                        mPaint);
+            }
+        }
+    }
+
+    private void drawYAxis(Canvas canvas) {
+        int left = mConverter.worldToScreenX(0.0);
+        if (left < 0 || left >= canvas.getWidth()) {
+            return;
+        }
+        mPaint.setColor(mAxesColor);
+        mPaint.setStrokeWidth(mAxesWidth);
+        //Drawing axis
+        canvas.drawLine((float) left, 0.0F, (float) left, canvas.getHeight(), mPaint);
+        //Drawing arrow
+        canvas.drawLine((float) left, 0.0F, (float) left - mArrowSize / 2.0F, mArrowSize / 2.0F, mPaint); //Left
+        canvas.drawLine((float) left, 0.0F, (float) left + mArrowSize / 2.0F, mArrowSize / 2.0F, mPaint); //Right
+        //Drawing ticks
+        if (mTicksNeeded) { //As we need ticks in integer coords, we can represent world Ys as ints
+            int ticksStart = (int) Math.floor(mConverter.screenToWorldByY(canvas.getHeight()));
+            int ticksStop = (int) Math.ceil(mConverter.screenToWorldByY(0));
+            for (int tick = ticksStart; tick <= ticksStop; tick++) {
+                double tickTop = mConverter.worldToScreenY(tick);
+                canvas.drawLine((float) left - mTickSize / 2.0F, (float) tickTop,
+                        (float) left + mTickSize / 2.0F, (float) tickTop,
+                        mPaint);
+            }
+        }
     }
 }
