@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -48,8 +49,14 @@ public class PlotView extends View {
     private float mScaleFactor = 1.0F;
     private float mScaleFocusX = 0.0F;
     private float mScaleFocusY = 0.0F;
-    private boolean mScaleScalingDraw = false;
+    private boolean mScalingPerformed = false;
     private ScaleGestureDetector mScaleDetector;
+    //Pan handling
+    private GestureDetector mGestureDetector;
+    private double mPanningThreshold = 0.001;
+    private float mPanningDistanceX = 0.0F;
+    private float mPanningDistanceY = 0.0F;
+
 
     public PlotView(Context context) {
         super(context);
@@ -71,12 +78,15 @@ public class PlotView extends View {
         setMinY(DEFAULT_MIN_Y);
         setMaxY(DEFAULT_MAX_Y);
         //Creating scale gesture detector
-        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener(this));
+        mScaleDetector = new ScaleGestureDetector(context, new ScalingListener(this));
+        //Creating gesture detector (panning)
+        mGestureDetector = new GestureDetector(context, new PanningListener(this));
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mScaleDetector.onTouchEvent(event);
+        mGestureDetector.onTouchEvent(event);
         return true;
     }
 
@@ -224,8 +234,8 @@ public class PlotView extends View {
         if (mListener != null) {
             double minX = mConverter.getScaledShiftedMinX();
             double maxX = mConverter.getScaledShiftedMaxX();
-            mListener.onPlotBuild(this, minX, maxX, canvas.getWidth(), mScaleScalingDraw);
-            mScaleScalingDraw = false;
+            mListener.onPlotBuild(this, minX, maxX, canvas.getWidth(), mScalingPerformed);
+            mScalingPerformed = false;
         }
         //Drawing bg
         drawBackground(canvas);
@@ -241,11 +251,28 @@ public class PlotView extends View {
     private void setupScreenConverter(Canvas canvas) {
         mConverter.setWidth(canvas.getWidth());
         mConverter.setHeight(canvas.getHeight());
-        mConverter.setScale(mScaleFactor);
-        double scaleFocusXRel = (mScaleFocusX / canvas.getWidth()) * 2.0 - 1.0;
-        double scaleFocusYRel = 1.0 - (mScaleFocusY / canvas.getHeight()) * 2.0;
-        mConverter.setShiftX(scaleFocusXRel);
-        mConverter.setShiftY(scaleFocusYRel);
+        if (mScalingPerformed) {
+            double scaleFocusXWorld = mConverter.toWorldByX((int) mScaleFocusX);
+            double scaleFocusYWorld = mConverter.toWorldByY((int) mScaleFocusY);
+            double scaleFocusXRel = ((scaleFocusXWorld - mConverter.getScaledMinX()) / mConverter.getScaledLengthByX()) * 2.0 - 1.0;
+            double scaleFocusYRel = ((scaleFocusYWorld - mConverter.getScaledMinY()) / mConverter.getScaledLengthByY()) * 2.0 - 1.0;
+            mConverter.setScale(mScaleFactor);
+            mConverter.setShiftX(scaleFocusXRel);
+            mConverter.setShiftY(scaleFocusYRel);
+        } else {
+            double panX = mPanningDistanceX / canvas.getWidth();
+            if (Math.abs(panX) < mPanningThreshold) {
+                panX = 0.0;
+            }
+            double panY = -mPanningDistanceY / canvas.getHeight();
+            if (Math.abs(panY) < mPanningThreshold) {
+                panY = 0.0;
+            }
+            mConverter.setShiftX(mConverter.getShiftX() + panX * mConverter.getScale());
+            mConverter.setShiftY(mConverter.getShiftY() + panY * mConverter.getScale());
+            mPanningDistanceX = 0.0F;
+            mPanningDistanceY = 0.0F;
+        }
     }
 
     /*
@@ -348,10 +375,13 @@ public class PlotView extends View {
         void onPlotBuild(PlotView view, double minX, double maxX, int width, boolean scaling);
     }
 
-    private static class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+    /*
+    * Scaling listener class
+    * */
+    private static class ScalingListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         private PlotView mPlotView;
 
-        public ScaleListener(PlotView plotView) {
+        public ScalingListener(PlotView plotView) {
             this.mPlotView = plotView;
         }
 
@@ -359,9 +389,28 @@ public class PlotView extends View {
         public boolean onScale(ScaleGestureDetector detector) {
             mPlotView.mScaleFactor *= detector.getScaleFactor();
             mPlotView.mScaleFactor = Math.max(PlotView.SCALE_MIN, Math.min(PlotView.SCALE_MAX, mPlotView.mScaleFactor));
-            mPlotView.mScaleScalingDraw = true;
+            mPlotView.mScalingPerformed = true;
             mPlotView.mScaleFocusX = detector.getFocusX();
             mPlotView.mScaleFocusY = detector.getFocusY();
+            mPlotView.invalidate();
+            return true;
+        }
+    }
+
+    /*
+    * Pan listening class
+    * */
+    private static class PanningListener extends GestureDetector.SimpleOnGestureListener {
+        private PlotView mPlotView;
+
+        public PanningListener(PlotView mPlotView) {
+            this.mPlotView = mPlotView;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mPlotView.mPanningDistanceX = distanceX;
+            mPlotView.mPanningDistanceY = distanceY;
             mPlotView.invalidate();
             return true;
         }
