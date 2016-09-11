@@ -5,12 +5,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.alexeychurchill.plotbuilder.graphics.DoublePoint;
+import com.alexeychurchill.plotbuilder.graphics.IntPoint;
 import com.alexeychurchill.plotbuilder.graphics.ScreenConverter;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class PlotView extends View {
@@ -34,6 +37,10 @@ public class PlotView extends View {
     private float mArrowSize = 10.0F;
     //Screen converter
     private ScreenConverter mConverter = new ScreenConverter();
+    //Plot points
+    private List<DoublePoint> mPlotPoints;
+    //onPlotBuild listener
+    private OnPlotBuildListener mListener;
 
     public PlotView(Context context) {
         super(context);
@@ -46,6 +53,7 @@ public class PlotView extends View {
     }
 
     private void init() {
+        mPaint.setStyle(Paint.Style.STROKE);
         setAntialiasing(true);
         setMinX(DEFAULT_MIN_X);
         setMaxX(DEFAULT_MAX_X);
@@ -56,7 +64,6 @@ public class PlotView extends View {
     /*
     * AntiAlias getter/setter
     * */
-
     public void setAntialiasing(boolean antialiasing) {
         mPaint.setAntiAlias(antialiasing);
     }
@@ -68,7 +75,6 @@ public class PlotView extends View {
     /*
     * BG color getter/setter
     * */
-
     public int getBGColor() {
         return mBackgroundColor;
     }
@@ -80,7 +86,6 @@ public class PlotView extends View {
     /*
     * Line color getter/setter
     * */
-
     public int getLineColor() {
         return mLineColor;
     }
@@ -92,7 +97,6 @@ public class PlotView extends View {
     /*
     * Line width getter/setter
     * */
-
     public float getLineWidth() {
         return mLineWidth;
     }
@@ -104,7 +108,6 @@ public class PlotView extends View {
     /*
     * Axes color getter/setter
     * */
-
     public int getAxesColor() {
         return mAxesColor;
     }
@@ -116,7 +119,6 @@ public class PlotView extends View {
     /*
     * Axes width getter/setter
     * */
-
     public float getAxesWidth() {
         return mAxesWidth;
     }
@@ -128,7 +130,6 @@ public class PlotView extends View {
     /*
     * Real world bounds getters
     * */
-
     public double getMinX() {
         return mConverter.getMinX();
     }
@@ -148,7 +149,6 @@ public class PlotView extends View {
     /*
     * Real world bounds setters
     * */
-
     public void setMinX(double minX) {
         mConverter.setMinX(minX);
     }
@@ -166,10 +166,27 @@ public class PlotView extends View {
     }
 
     /*
+    * Plot points getter/setter
+    * */
+    public List<DoublePoint> getPlotPoints() {
+        return mPlotPoints;
+    }
+
+    public void setPlotPoints(List<DoublePoint> plotPoints) {
+        this.mPlotPoints = plotPoints;
+    }
+
+    /*
+    * Allows to set listener
+    * */
+    public void setListener(OnPlotBuildListener listener) {
+        this.mListener = listener;
+    }
+
+    /*
     * Calls invalidate(). This causes onDraw() call, which contains
     * call of the listener onBuildPlot method.
     * */
-
     public void update() {
         invalidate();
     }
@@ -183,10 +200,16 @@ public class PlotView extends View {
         super.onDraw(canvas);
         //Setting up screen converter
         setupScreenConverter(canvas);
+        //Calling listener
+        if (mListener != null) {
+            mListener.onPlotBuild(this, mConverter.getMinX(), mConverter.getMaxX(), canvas.getWidth());
+        }
         //Drawing bg
         drawBackground(canvas);
         //Drawing axes
         drawAxes(canvas);
+        //Drawing plot
+        drawPlot(canvas);
     }
 
     /*
@@ -264,5 +287,36 @@ public class PlotView extends View {
                         mPaint);
             }
         }
+    }
+
+    /*
+    * This method draws plot line from the points list
+    * */
+    private void drawPlot(Canvas canvas) {
+        if (mPlotPoints == null) {
+            return;
+        }
+        if (mPlotPoints.size() == 0) {
+            return;
+        }
+        //Plot path
+        Path plotPath = new Path();
+        plotPath.moveTo(mConverter.worldToScreenX(mPlotPoints.get(0).getX()), mConverter.worldToScreenY(mPlotPoints.get(0).getY()));
+        for (DoublePoint point : mPlotPoints) {
+            int x = mConverter.worldToScreenX(point.getX());
+            int y = mConverter.worldToScreenY(point.getY());
+            plotPath.lineTo(x, y);
+        }
+        //Draw
+        mPaint.setColor(mLineColor);
+        mPaint.setStrokeWidth(mLineWidth);
+        canvas.drawPath(plotPath, mPaint);
+    }
+
+    /*
+    * onPlotBuild() called when plot redrawing
+    * */
+    public interface OnPlotBuildListener {
+        void onPlotBuild(PlotView view, double minX, double maxX, int width);
     }
 }

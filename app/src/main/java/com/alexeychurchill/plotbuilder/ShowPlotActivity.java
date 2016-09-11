@@ -5,10 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.LinearLayout;
 
 import com.alexeychurchill.plotbuilder.graphics.DoublePoint;
-import com.alexeychurchill.plotbuilder.graphics.IntPoint;
 import com.alexeychurchill.plotbuilder.math.DoubleFunction;
 import com.alexeychurchill.plotbuilder.math.FunctionTabulator;
 import com.alexeychurchill.plotbuilder.math.ParsedDoubleFunction;
@@ -16,33 +14,37 @@ import com.alexeychurchill.plotbuilder.plotview.PlotView;
 
 import java.util.List;
 
-public class ShowPlotActivity extends AppCompatActivity {
+public class ShowPlotActivity extends AppCompatActivity
+        implements PlotView.OnPlotBuildListener {
     private static final String LOG_TAG = "ShowPlotActivity";
     public static final String DOMAIN = "com.alexeychurchill.plotbuilder";
     public static final String EXTRA_FUNCTION = DOMAIN.concat(".EXTRA_FUNCTION");
     public static final String EXTRA_FROM = DOMAIN.concat(".EXTRA_FROM");
     public static final String EXTRA_TO = DOMAIN.concat(".EXTRA_TO");
-    //...
+
     private String mFunctionSource;
     private DoubleFunction mFunction;
     private double mFrom;
     private double mTo;
-    //...
+    private boolean mNewPlot = true;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_plot);
-        //...
-        //...
         if (savedInstanceState == null) {
             Intent myCallIntent = getIntent();
             loadWithIntent(myCallIntent);
         } else {
             loadFromBundle(savedInstanceState);
         }
-        mFunction = new ParsedDoubleFunction(mFunctionSource); //TODO: Parse mFunctionSource
-        //TODO: Build plot
-        //TODO: Set points
+        mFunction = new ParsedDoubleFunction(mFunctionSource);
+        PlotView mPVPlot = ((PlotView) findViewById(R.id.pvPlot));
+        if (mPVPlot != null) {
+            mPVPlot.setMinX(mFrom);
+            mPVPlot.setMaxX(mTo);
+            mPVPlot.setListener(this);
+        }
     }
 
     @Override
@@ -51,6 +53,9 @@ public class ShowPlotActivity extends AppCompatActivity {
         saveToBundle(outState);
     }
 
+    /*
+    * Inits with Intent
+    * */
     private boolean loadWithIntent(Intent intent) {
         if (intent == null) {
             return false;
@@ -67,6 +72,9 @@ public class ShowPlotActivity extends AppCompatActivity {
         return true;
     }
 
+    /*
+    * Saves to bundle
+    * */
     private void saveToBundle(Bundle state) {
         if (state == null) {
             return;
@@ -76,6 +84,9 @@ public class ShowPlotActivity extends AppCompatActivity {
         state.putDouble(EXTRA_TO, mTo);
     }
 
+    /*
+    * Loads from bundle
+    * */
     private boolean loadFromBundle(Bundle state) {
         if (state == null) {
             return false;
@@ -84,5 +95,70 @@ public class ShowPlotActivity extends AppCompatActivity {
         mFrom = state.getDouble(EXTRA_FROM, 0.0);
         mTo = state.getDouble(EXTRA_TO, 0.0);
         return true;
+    }
+
+    /*
+    * Function tabulator
+    * */
+    private List<DoublePoint> tabulate(double from, double to, int steps) {
+        if (mFunction == null) {
+            return null;
+        }
+        FunctionTabulator tabulator = new FunctionTabulator(mFunction);
+        tabulator.setFrom(from);
+        tabulator.setTo(to);
+        tabulator.setStepCount(steps);
+        return tabulator.tabulate();
+    }
+
+    /*
+    * Finds minimum Y
+    * */
+    private double getMinY(List<DoublePoint> points) {
+        if (points == null) {
+            return 0.0;
+        }
+        if (points.isEmpty()) {
+            return 0.0;
+        }
+        double min = points.get(0).getY();
+        for (DoublePoint point : points) {
+            min = Math.min(min, point.getY());
+        }
+        return min;
+    }
+
+    /*
+    * Finds maximum Y
+    * */
+    private double getMaxY(List<DoublePoint> points) {
+        if (points == null) {
+            return 0.0;
+        }
+        if (points.isEmpty()) {
+            return 0.0;
+        }
+        double max = points.get(0).getY();
+        for (DoublePoint point : points) {
+            max = Math.max(max, point.getY());
+        }
+        return max;
+    }
+
+    /*
+    * Callback. Builds plot.
+    * */
+    @Override
+    public void onPlotBuild(PlotView view, double minX, double maxX, int width) {
+        List<DoublePoint> points = tabulate(minX, maxX, width);
+        if (points == null) {
+            return;
+        }
+        if (mNewPlot) {
+            mNewPlot = false;
+            view.setMinY(getMinY(points));
+            view.setMaxY(getMaxY(points));
+        }
+        view.setPlotPoints(points);
     }
 }
