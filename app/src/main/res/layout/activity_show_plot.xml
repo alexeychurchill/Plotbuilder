@@ -7,5 +7,10 @@
         android:id="@+id/llPlace"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
+        <com.alexeychurchill.plotbuilder.plotview.PlotView
+            android:id="@+id/pvPlot"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
 </LinearLayout>

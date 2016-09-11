@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.LinearLayout;
 
 import com.alexeychurchill.plotbuilder.graphics.DoublePoint;
@@ -16,6 +17,7 @@ import com.alexeychurchill.plotbuilder.plotview.PlotView;
 import java.util.List;
 
 public class ShowPlotActivity extends AppCompatActivity {
+    private static final String LOG_TAG = "ShowPlotActivity";
     public static final String DOMAIN = "com.alexeychurchill.plotbuilder";
     public static final String EXTRA_FUNCTION = DOMAIN.concat(".EXTRA_FUNCTION");
     public static final String EXTRA_FROM = DOMAIN.concat(".EXTRA_FROM");
@@ -26,22 +28,19 @@ public class ShowPlotActivity extends AppCompatActivity {
     private double mFrom;
     private double mTo;
     //...
-    private PlotView mPlotView;
-    private List<DoublePoint> mPlotPoints;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_plot);
-        mPlotView = new PlotView(this);
-        ((LinearLayout) findViewById(R.id.llPlace)).addView(mPlotView);
+        //...
+        //...
         if (savedInstanceState == null) {
             Intent myCallIntent = getIntent();
             loadWithIntent(myCallIntent);
         } else {
             loadFromBundle(savedInstanceState);
         }
-//        mFunction = new ParsedDoubleFunction(); //TODO: Parse mFunctionSource
+        mFunction = new ParsedDoubleFunction(mFunctionSource); //TODO: Parse mFunctionSource
         //TODO: Build plot
         //TODO: Set points
     }
@@ -85,24 +84,5 @@ public class ShowPlotActivity extends AppCompatActivity {
         mFrom = state.getDouble(EXTRA_FROM, 0.0);
         mTo = state.getDouble(EXTRA_TO, 0.0);
         return true;
-    }
-
-    private void buildPlot(double from, double to, int pointCount) {
-        if (mPlotView == null) {
-            return;
-        }
-        FunctionTabulator tabulator = new FunctionTabulator();
-        tabulator.setFunction(mFunction);
-        tabulator.setFrom(from);
-        tabulator.setTo(to);
-        tabulator.setStepCount(pointCount);
-        mPlotPoints = tabulator.tabulate();
-    }
-
-    private void outPlotPoints() {
-        if (mPlotPoints == null) {
-            return;
-        }
-        mPlotView.setSeries(mPlotPoints);
     }
 }
