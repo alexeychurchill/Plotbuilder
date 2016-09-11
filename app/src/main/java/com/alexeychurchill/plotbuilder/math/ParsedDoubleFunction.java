@@ -4,9 +4,15 @@ package com.alexeychurchill.plotbuilder.math;
  * ParsedDoubleFunction provides function parsing from interface.
  */
 public class ParsedDoubleFunction implements DoubleFunction {
-    //TODO: Implement this function
+    private MathParser parser = new MathParser();
+
+    public ParsedDoubleFunction(String function) {
+        parser.parse(function);
+    }
+
     @Override
     public double f(double x) {
-        return 0.0;
+        parser.setVariable("x", x);
+        return parser.calculate();
     }
 }

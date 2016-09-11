@@ -3,13 +3,26 @@ package com.alexeychurchill.plotbuilder;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.alexeychurchill.plotbuilder.math.MathParser;
 
+import java.util.Calendar;
+
 public class EnterDataActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String LOG_TAG = "EnterDataActivity";
+    private static final String DEFAULT_FUNCTION = "lg(x^3-1.2)/(x^2+cos(x))";
+    private static final String DEFAULT_FROM = "";
+    private static final String DEFAULT_TO = "";
+    private static final int CLICK_INTERVAL_MS = 1000;
+    private static final int CLICK_COUNT = 5;
+
+    private int mClicks = 0;
+    private long mLastClickTime = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -17,6 +30,10 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
         Button btnBuild = ((Button) findViewById(R.id.btnBuild));
         if (btnBuild != null) {
             btnBuild.setOnClickListener(this);
+        }
+        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
+        if (etFunction != null) {
+            etFunction.setOnClickListener(this);
         }
     }
 
@@ -26,33 +43,45 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
             case R.id.btnBuild:
                 callShowPlotActivity();
                 break;
+            case R.id.etFunction:
+                etFunctionClick();
+                break;
+        }
+    }
+
+    private void etFunctionClick() {
+        long thisClickTime = Calendar.getInstance().getTimeInMillis();
+        if ((thisClickTime - mLastClickTime) > CLICK_INTERVAL_MS) {
+            mClicks = 0;
+        }
+        mLastClickTime = thisClickTime;
+        mClicks++;
+        if (mClicks >= CLICK_COUNT) {
+            mClicks = 0;
+            etFunctionClickAction();
+        }
+    }
+
+    private void etFunctionClickAction() {
+        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
+        EditText etFrom = ((EditText) findViewById(R.id.etFrom));
+        EditText etTo = ((EditText) findViewById(R.id.etTo));
+        if (etFunction != null) {
+            etFunction.setText(DEFAULT_FUNCTION);
         }
     }
 
     private void callShowPlotActivity() {
-        //lg(x^3-1.2)/(x^2+cos(x))
-//        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
-//        EditText etFrom = ((EditText) findViewById(R.id.etFrom));
-//        EditText etTo = ((EditText) findViewById(R.id.etTo));
-//        Intent showPlotIntent = new Intent(this, ShowPlotActivity.class);
-//        if (etFunction == null || etFrom == null || etTo == null) {
-//            return;
-//        }
-//        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FUNCTION, etFunction.getText().toString());
-//        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FROM, etFrom.getText().toString());
-//        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_TO, etTo.getText().toString());
-//        startActivity(showPlotIntent);
-        MathParser parser = new MathParser("lg(x^3-1.2)/(x^2+cos(x))");
-//        MathParser parser = new MathParser("(a/b^2-455.34)*(4-d^4/2)");
-//        MathParser parser = new MathParser("a+b*c");
-//        MathParser parser = new MathParser("a+(b-c)*d");
-//        MathParser parser = new MathParser("a+b*c-d");
-//        MathParser parser = new MathParser("(a+b)*c");
-//        MathParser parser = new MathParser("(a+b*c)/2");
-//        MathParser parser = new MathParser("(a*(b+c)+d)/2");
-//        MathParser parser = new MathParser("x+sin(x)*2");
-//        MathParser parser = new MathParser("a+sin(b+c)*somevar");
-//        MathParser parser = new MathParser("");
-        parser.parse();
+        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
+        EditText etFrom = ((EditText) findViewById(R.id.etFrom));
+        EditText etTo = ((EditText) findViewById(R.id.etTo));
+        Intent showPlotIntent = new Intent(this, ShowPlotActivity.class);
+        if (etFunction == null || etFrom == null || etTo == null) {
+            return;
+        }
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FUNCTION, etFunction.getText().toString());
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FROM, etFrom.getText().toString());
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_TO, etTo.getText().toString());
+        startActivity(showPlotIntent);
     }
 }

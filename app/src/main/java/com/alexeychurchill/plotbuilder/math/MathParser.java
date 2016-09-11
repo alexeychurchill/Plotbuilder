@@ -40,6 +40,88 @@ public class MathParser {
     }
 
     //TODO: Calculation
+    public double calculate() {
+        Deque<Double> stack = new ArrayDeque<>();
+        for (String token : postfix) {
+            if (Utils.isNumber(token)) { //Number
+                double tokenNumber = Double.parseDouble(token);
+                stack.push(tokenNumber);
+                continue;
+            }
+            if (token.length() == 1 && Utils.isOperation(token.charAt(0))) { //Operation
+                double a, b, result = 0.0;
+                if (stack.size() < 2) {
+                    return 0.0;
+                }
+                b = stack.pop();
+                a = stack.pop();
+                switch (token.charAt(0)) {
+                    case '+':
+                        result = a + b;
+                        break;
+                    case '-':
+                        result = a - b;
+                        break;
+                    case '*':
+                        result = a * b;
+                        break;
+                    case '/':
+                        result = a / b;
+                        break;
+                    case '^':
+                        result = Math.pow(a, b);
+                        break;
+                }
+                stack.push(result);
+                continue;
+            }
+            if (Utils.isFunction(token)) { //Function
+                if (stack.size() < 1) {
+                    return 0.0;
+                }
+                double a = stack.pop();
+                double result = calculateFunction(token, a);
+                stack.push(result);
+                continue;
+            }
+            if (variables.containsKey(token)) { //Variable
+                double variableValue = variables.get(token);
+                stack.push(variableValue);
+                continue;
+            }
+            return 0.0; //TODO: Error handling!
+        }
+        if (stack.size() == 1) {
+            return stack.pop();
+        } else {
+            return 0.0;
+        }
+    }
+
+    private double calculateFunction(String function, double arg) {
+        if (function.contentEquals("abs")) {
+            return Math.abs(arg);
+        }
+        if (function.contentEquals("sin")) {
+            return Math.sin(arg);
+        }
+        if (function.contentEquals("cos")) {
+            return Math.cos(arg);
+        }
+        if (function.contentEquals("tg")) {
+            return Math.tan(arg);
+        }
+        if (function.contentEquals("ctg")) {
+            return 1.0 / Math.tan(arg);
+        }
+        if (function.contentEquals("lg")) {
+            return Math.log10(arg);
+        }
+        if (function.contentEquals("ln")) {
+            return Math.log(arg);
+        }
+        return 0.0;
+    }
 
     private List<String> postfixNotation(List<String> tokenList) {
         //TODO: Error checking

@@ -41,7 +41,7 @@ public class ShowPlotActivity extends AppCompatActivity {
         } else {
             loadFromBundle(savedInstanceState);
         }
-        mFunction = new ParsedDoubleFunction(); //TODO: Parse mFunctionSource
+//        mFunction = new ParsedDoubleFunction(); //TODO: Parse mFunctionSource
         //TODO: Build plot
         //TODO: Set points
     }
@@ -104,5 +104,5 @@ public class ShowPlotActivity extends AppCompatActivity {
             return;
         }
         mPlotView.setSeries(mPlotPoints);
-    } //you are fuck dog:)
+    }
 }
