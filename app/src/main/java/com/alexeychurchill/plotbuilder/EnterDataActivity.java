@@ -9,15 +9,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.alexeychurchill.plotbuilder.math.DoubleFunction;
 import com.alexeychurchill.plotbuilder.math.MathParser;
 
 import java.util.Calendar;
 
 public class EnterDataActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String LOG_TAG = "EnterDataActivity";
-    private static final String DEFAULT_FUNCTION = "3*sin(x)";//"lg(x^3-1.2)/(x^2+cos(x))";
-    private static final String DEFAULT_FROM = "-3.0";//"1.2";
-    private static final String DEFAULT_TO = "9.0";//"5.0";
+    private static final String DEFAULT_FUNCTION = "lg(x^3-1.2)/(x^2+cos(x))";
+    private static final String DEFAULT_FROM = "1.2";
+    private static final String DEFAULT_TO = "5.0";
     private static final int CLICK_INTERVAL_MS = 1000;
     private static final int CLICK_COUNT = 5;
 
@@ -80,46 +81,69 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
 
     private void callShowPlotActivity() {
         hideError();
-        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
-        EditText etFrom = ((EditText) findViewById(R.id.etFrom));
-        EditText etTo = ((EditText) findViewById(R.id.etTo));
         Intent showPlotIntent = new Intent(this, ShowPlotActivity.class);
-        if (etFunction == null || etFrom == null || etTo == null) {
+        String function = getFunction(); //Function
+        if (function == null) {
             return;
         }
-        if (etFunction.getText().length() == 0) { //Function
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FUNCTION, function);
+        Double from = getFrom(); //From
+        if (from == null) {
+            return;
+        }
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FROM, from);
+        Double to = getTo(); //To
+        if (to == null) {
+            return;
+        }
+        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_TO, to);
+        startActivity(showPlotIntent);
+    }
+
+    private String getFunction() {
+        EditText etFunction = ((EditText) findViewById(R.id.etFunction));
+        if (etFunction == null) {
+            return null;
+        }
+        if (etFunction.getText().length() == 0) {
             showError("Not enough data!");
             etFunction.requestFocus();
-            return;
+            return null;
         }
-        showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FUNCTION, etFunction.getText().toString());
-        if (etFrom.getText().length() == 0) { //From
+        return etFunction.getText().toString();
+    }
+
+    private Double getFrom() {
+        EditText etFrom = ((EditText) findViewById(R.id.etFrom));
+        if (etFrom == null) {
+            return null;
+        }
+        return getDoubleFromEditText(etFrom);
+    }
+
+    private Double getTo() {
+        EditText etTo = ((EditText) findViewById(R.id.etTo));
+        if (etTo == null) {
+            return null;
+        }
+        return getDoubleFromEditText(etTo);
+    }
+
+    private Double getDoubleFromEditText(EditText et) {
+        if (et.getText().length() == 0) {
             showError("Not enough data!");
-            etFrom.requestFocus();
-            return;
+            et.requestFocus();
+            return null;
         }
+        Double from;
         try {
-            double from = Double.parseDouble(etFrom.getText().toString());
-            showPlotIntent.putExtra(ShowPlotActivity.EXTRA_FROM, from);
+            from = Double.parseDouble(et.getText().toString());
         } catch (NumberFormatException e) {
             showError("Wrong number format!");
-            etFrom.requestFocus();
-            return;
+            et.requestFocus();
+            return null;
         }
-        if (etTo.getText().length() == 0) { //To
-            showError("Not enough data!");
-            etTo.requestFocus();
-            return;
-        }
-        try {
-            double to = Double.parseDouble(etTo.getText().toString());
-            showPlotIntent.putExtra(ShowPlotActivity.EXTRA_TO, to);
-            etTo.requestFocus();
-        } catch (NumberFormatException e) {
-            showError("Wrong number format!");
-            return;
-        }
-        startActivity(showPlotIntent);
+        return from;
     }
 
     private void showError(String description) {
