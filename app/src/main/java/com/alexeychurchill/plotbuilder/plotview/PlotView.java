@@ -39,6 +39,10 @@ public class PlotView extends View {
     private boolean mTicksNeeded = true;
     private float mTickSize = 10.0F;
     private float mArrowSize = 10.0F;
+    //Grid
+    private boolean mGridNeeded = true;
+    private int mGridColor = Color.LTGRAY;
+    private float mGridWidth = 0.5F;
     //Screen converter
     private ScreenConverter mConverter = new ScreenConverter();
     //Plot points
@@ -286,7 +290,9 @@ public class PlotView extends View {
     * This draws axes.
     * */
     private void drawAxes(Canvas canvas) {
+        drawXGrid(canvas);
         drawXAxis(canvas);
+        drawYGrid(canvas);
         drawYAxis(canvas);
     }
 
@@ -319,6 +325,23 @@ public class PlotView extends View {
         }
     }
 
+    private void drawXGrid(Canvas canvas) {
+        if (!mGridNeeded) {
+            return;
+        }
+        mPaint.setColor(mGridColor);
+        mPaint.setStrokeWidth(mGridWidth);
+        int gridStart = (int) Math.floor(mConverter.toWorldByX(0));
+        int gridStop = (int) Math.ceil(mConverter.toWorldByX(canvas.getWidth()));
+        for (int grid = gridStart; grid < gridStop; grid++) {
+            if (grid == 0) {
+                continue;
+            }
+            double gridLeft = mConverter.toScreenX(grid);
+            canvas.drawLine((float) gridLeft, 0.0F, (float) gridLeft, canvas.getHeight(), mPaint);
+        }
+    }
+
     private void drawYAxis(Canvas canvas) {
         int left = mConverter.toScreenX(0.0);
         if (left < 0 || left >= canvas.getWidth()) {
@@ -341,6 +364,23 @@ public class PlotView extends View {
                         (float) left + mTickSize / 2.0F, (float) tickTop,
                         mPaint);
             }
+        }
+    }
+
+    private void drawYGrid(Canvas canvas) {
+        if (!mGridNeeded) {
+            return;
+        }
+        mPaint.setColor(mGridColor);
+        mPaint.setStrokeWidth(mGridWidth);
+        int gridStart = (int) Math.floor(mConverter.toWorldByY(canvas.getHeight()));
+        int gridStop = (int) Math.ceil(mConverter.toWorldByY(0));
+        for (int grid = gridStart; grid <= gridStop; grid++) {
+            if (grid == 0) {
+                continue;
+            }
+            double gridTop = mConverter.toScreenY(grid);
+            canvas.drawLine(0.0F, (float) gridTop, canvas.getHeight(), (float) gridTop, mPaint);
         }
     }
 

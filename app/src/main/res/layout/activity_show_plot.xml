@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_padding">
     <LinearLayout
         android:id="@+id/llPlace"
         android:orientation="vertical"
@@ -11,6 +12,6 @@
         <com.alexeychurchill.plotbuilder.plotview.PlotView
             android:id="@+id/pvPlot"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </LinearLayout>

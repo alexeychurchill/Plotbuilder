@@ -1,8 +1,10 @@
 package com.alexeychurchill.plotbuilder;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -43,6 +45,9 @@ public class ShowPlotActivity extends AppCompatActivity
             mPVPlot.setMinX(mFrom);
             mPVPlot.setMaxX(mTo);
             mPVPlot.setListener(this);
+            mPVPlot.setAxesColor(ContextCompat.getColor(this, R.color.colorPrimary));
+            mPVPlot.setLineColor(ContextCompat.getColor(this, R.color.colorAccent));
+            mPVPlot.setLineWidth(2.0F);
         }
     }
 

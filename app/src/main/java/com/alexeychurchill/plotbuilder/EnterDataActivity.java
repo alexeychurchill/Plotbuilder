@@ -106,7 +106,7 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
             return null;
         }
         if (etFunction.getText().length() == 0) {
-            showError("Not enough data!");
+            showError(R.string.err_not_enough_data);
             etFunction.requestFocus();
             return null;
         }
@@ -131,7 +131,7 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
 
     private Double getDoubleFromEditText(EditText et) {
         if (et.getText().length() == 0) {
-            showError("Not enough data!");
+            showError(R.string.err_not_enough_data);
             et.requestFocus();
             return null;
         }
@@ -139,11 +139,16 @@ public class EnterDataActivity extends AppCompatActivity implements View.OnClick
         try {
             from = Double.parseDouble(et.getText().toString());
         } catch (NumberFormatException e) {
-            showError("Wrong number format!");
+            showError(R.string.err_wrong_number_format);
             et.requestFocus();
             return null;
         }
         return from;
+    }
+
+    private void showError(int resId) {
+        String errorText = getString(resId);
+        showError(errorText);
     }
 
     private void showError(String description) {

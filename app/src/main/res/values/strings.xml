@@ -8,4 +8,6 @@
     <string name="et_to_caption">To:</string>
     <string name="et_to_hint">…b]</string>
     <string name="btn_build_text">Build</string>
+    <string name="err_wrong_number_format">Wrong number format!</string>
+    <string name="err_not_enough_data">Not enough data!</string>
 </resources>
