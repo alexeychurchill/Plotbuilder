@@ -1,19 +1,20 @@
 package com.alexeychurchill.plotbuilder.plotview;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.alexeychurchill.plotbuilder.graphics.DoublePoint;
-import com.alexeychurchill.plotbuilder.graphics.IntPoint;
 import com.alexeychurchill.plotbuilder.graphics.ScreenConverter;
+import com.alexeychurchill.plotbuilder.math.MathParser;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class PlotView extends View {
@@ -22,6 +23,9 @@ public class PlotView extends View {
     private static final double DEFAULT_MAX_X = 5.0;
     private static final double DEFAULT_MIN_Y = -5.0;
     private static final double DEFAULT_MAX_Y = 5.0;
+    //Scaling
+    private static final float SCALE_MIN = 1.0F;
+    private static final float SCALE_MAX = 5.0F;
     //Colors
     private int mBackgroundColor = Color.WHITE;
     private int mLineColor = Color.BLUE;
@@ -41,24 +45,38 @@ public class PlotView extends View {
     private List<DoublePoint> mPlotPoints;
     //onPlotBuild listener
     private OnPlotBuildListener mListener;
+    //Scaling handling
+    private float mScaleFactor = 1.0F;
+    private boolean mDrawScaling = false;
+    private ScaleGestureDetector mScaleDetector;
 
     public PlotView(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
     public PlotView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
-    private void init() {
+    private void init(Context context) {
+        //mPaint initialization
         mPaint.setStyle(Paint.Style.STROKE);
         setAntialiasing(true);
+        //mConveter initialization
         setMinX(DEFAULT_MIN_X);
         setMaxX(DEFAULT_MAX_X);
         setMinY(DEFAULT_MIN_Y);
         setMaxY(DEFAULT_MAX_Y);
+        //Creating scale gesture detector
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener(this));
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mScaleDetector.onTouchEvent(event);
+        return true;
     }
 
     /*
@@ -201,8 +219,10 @@ public class PlotView extends View {
         //Setting up screen converter
         setupScreenConverter(canvas);
         //Calling listener
+        //Scaling flag being reset
         if (mListener != null) {
-            mListener.onPlotBuild(this, mConverter.getMinX(), mConverter.getMaxX(), canvas.getWidth());
+            mListener.onPlotBuild(this, mConverter.getMinX(), mConverter.getMaxX(), canvas.getWidth(), mDrawScaling);
+            mDrawScaling = false;
         }
         //Drawing bg
         drawBackground(canvas);
@@ -317,6 +337,25 @@ public class PlotView extends View {
     * onPlotBuild() called when plot redrawing
     * */
     public interface OnPlotBuildListener {
-        void onPlotBuild(PlotView view, double minX, double maxX, int width);
+        void onPlotBuild(PlotView view, double minX, double maxX, int width, boolean scaling);
+    }
+
+    private static class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        private PlotView mPlotView;
+
+        public ScaleListener(PlotView plotView) {
+            this.mPlotView = plotView;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mPlotView.mScaleFactor *= detector.getScaleFactor();
+            mPlotView.mScaleFactor = Math.max(PlotView.SCALE_MIN, Math.min(PlotView.SCALE_MAX, mPlotView.mScaleFactor));
+            mPlotView.mDrawScaling = true;
+            mPlotView.mConverter.setScale(mPlotView.mScaleFactor);
+            mPlotView.invalidate();
+            Log.d("PV_SL", "mScaleFactor: " + mPlotView.mScaleFactor);
+            return true;
+        }
     }
 }

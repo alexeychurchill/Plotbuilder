@@ -26,7 +26,6 @@ public class ShowPlotActivity extends AppCompatActivity
     private DoubleFunction mFunction;
     private double mFrom;
     private double mTo;
-    private boolean mNewPlot = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -149,13 +148,12 @@ public class ShowPlotActivity extends AppCompatActivity
     * Callback. Builds plot.
     * */
     @Override
-    public void onPlotBuild(PlotView view, double minX, double maxX, int width) {
+    public void onPlotBuild(PlotView view, double minX, double maxX, int width, boolean scaling) {
         List<DoublePoint> points = tabulate(minX, maxX, width);
         if (points == null) {
             return;
         }
-        if (mNewPlot) {
-            mNewPlot = false;
+        if (!scaling) {
             view.setMinY(getMinY(points));
             view.setMaxY(getMaxY(points));
         }

@@ -14,32 +14,56 @@ public class ScreenConverter {
     //Screen data
     private int width;
     private int height;
+    //Scaling
+    private double scale = 1.0;
+    //Shifting
+    private double shiftX = 0.0;
+    private double shiftY = 0.0;
 
     //From world to screen by X
     public int worldToScreenX(double x) {
-        double xAxisLength = maxX - minX;
+        double xAxisLength = (maxX - minX) / scale;
         double xFromMin = x - minX;
         return (int) (width * xFromMin / xAxisLength);
     }
 
     //From world to screen by Y
     public int worldToScreenY(double y) {
-        double yAxisLength = maxY - minY;
+        double yAxisLength = (maxY - minY) / scale;
         double yFromMin = y - minY;
         return (int) (height * (1.0 - yFromMin / yAxisLength));
     }
 
     //From screen to world by X
     public double screenToWorldByX(int x) {
-        double xAxisLength = maxX - minX;
+        double xAxisLength = (maxX - minX) / scale;
         return (1.0 * x) / width * xAxisLength + minX;
     }
 
     //From screen to world by Y
     public double screenToWorldByY(int y) {
-        double yAxisLength = maxY - minY;
+        double yAxisLength = (maxY - minY) / scale;
         return (1.0 - (1.0 * y) / height) * yAxisLength + minY;
     }
+
+    /*
+    * Scaling
+    * */
+    public double getScale() {
+        return scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    public void resetScale() {
+        setScale(1.0);
+    }
+
+    /*
+    * Shifting. In percents.
+    * */
 
     public double getMinX() {
         return minX;
