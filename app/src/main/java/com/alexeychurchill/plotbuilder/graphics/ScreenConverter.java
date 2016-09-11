@@ -21,29 +21,29 @@ public class ScreenConverter {
     private double shiftY = 0.0;
 
     //From world to screen by X
-    public int worldToScreenX(double x) {
-        double xAxisLength = (maxX - minX) / scale;
-        double xFromMin = x - minX;
+    public int toScreenX(double x) {
+        double xAxisLength = getScaledLengthByX();
+        double xFromMin = x - getScaledShiftedMinX();
         return (int) (width * xFromMin / xAxisLength);
     }
 
     //From world to screen by Y
-    public int worldToScreenY(double y) {
-        double yAxisLength = (maxY - minY) / scale;
-        double yFromMin = y - minY;
+    public int toScreenY(double y) {
+        double yAxisLength = getScaledLengthByY();
+        double yFromMin = y - getScaledShiftedMinY();
         return (int) (height * (1.0 - yFromMin / yAxisLength));
     }
 
     //From screen to world by X
-    public double screenToWorldByX(int x) {
-        double xAxisLength = (maxX - minX) / scale;
-        return (1.0 * x) / width * xAxisLength + minX;
+    public double toWorldByX(int x) {
+        double xAxisLength = getScaledLengthByX();
+        return (1.0 * x) / width * xAxisLength + getScaledShiftedMinX();
     }
 
     //From screen to world by Y
-    public double screenToWorldByY(int y) {
-        double yAxisLength = (maxY - minY) / scale;
-        return (1.0 - (1.0 * y) / height) * yAxisLength + minY;
+    public double toWorldByY(int y) {
+        double yAxisLength = getScaledLengthByY();
+        return (1.0 - (1.0 * y) / height) * yAxisLength + getScaledShiftedMinY();
     }
 
     /*
@@ -62,9 +62,36 @@ public class ScreenConverter {
     }
 
     /*
-    * Shifting. In percents.
+    * Shifting.
+    * From -1.0 to 1.0;
     * */
+    public double getShiftX() {
+        return shiftX;
+    }
 
+    public void setShiftX(double shiftX) {
+        this.shiftX = Math.max(-1.0, Math.min(1.0, shiftX));
+    }
+
+    public void resetShiftX() {
+        setShiftX(0.0);
+    }
+
+    public double getShiftY() {
+        return shiftY;
+    }
+
+    public void setShiftY(double shiftY) {
+        this.shiftY = Math.max(-1.0, Math.min(1.0, shiftY));
+    }
+
+    public void resetShiftY() {
+        setShiftY(0.0);
+    }
+
+    /*
+     * Minimal X
+     * */
     public double getMinX() {
         return minX;
     }
@@ -73,6 +100,9 @@ public class ScreenConverter {
         this.minX = minX;
     }
 
+    /*
+    * Maximal X
+    * */
     public double getMaxX() {
         return maxX;
     }
@@ -81,6 +111,9 @@ public class ScreenConverter {
         this.maxX = maxX;
     }
 
+    /*
+    * Minimal Y
+    * */
     public double getMinY() {
         return minY;
     }
@@ -89,6 +122,9 @@ public class ScreenConverter {
         this.minY = minY;
     }
 
+    /*
+    * Maximal Y
+    * */
     public double getMaxY() {
         return maxY;
     }
@@ -97,6 +133,74 @@ public class ScreenConverter {
         this.maxY = maxY;
     }
 
+    /*
+    * Axes sizes
+    * */
+    public double getLengthByX() {
+        return maxX - minX;
+    }
+
+    public double getLengthByY() {
+        return maxY - minY;
+    }
+
+    public double getScaledLengthByX() { //Scaled
+        return getLengthByX() / scale;
+    }
+
+    public double getScaledLengthByY() { //Scaled
+        return getLengthByY() / scale;
+    }
+
+    /*
+    * Scaled mins and maxes
+    * */
+    public double getScaledMinX() {
+        return (minX + maxX - getScaledLengthByX()) / 2.0;
+    }
+
+    public double getScaledMaxX() {
+        return (minX + maxX + getScaledLengthByX()) / 2.0;
+    }
+
+    public double getScaledMinY() {
+        return (minY + maxY - getScaledLengthByY()) / 2.0;
+    }
+
+    public double getScaledMaxY() {
+        return (minY + maxY + getScaledLengthByY()) / 2.0;
+    }
+
+    /*
+    * Scaled and shifted mins and maxes
+    * */
+    public double getAvailableShiftByX() { //Available shifts
+        return Math.max(0.0, getLengthByX() - getScaledLengthByX());
+    }
+
+    public double getAvailableShiftByY() {
+        return Math.max(0.0, getLengthByY() - getScaledLengthByY());
+    }
+
+    public double getScaledShiftedMinX() {
+        return getScaledMinX() + getAvailableShiftByX() / 2.0 * shiftX;
+    }
+
+    public double getScaledShiftedMaxX() {
+        return getScaledMaxX() + getAvailableShiftByX() / 2.0 * shiftX;
+    }
+
+    public double getScaledShiftedMinY() {
+        return getScaledMinY() + getAvailableShiftByY() / 2.0 * shiftY;
+    }
+
+    public double getScaledShiftedMaxY() {
+        return getScaledMaxY() + getAvailableShiftByY() / 2.0 * shiftY;
+    }
+
+    /*
+    * Real screen width
+    * */
     public int getWidth() {
         return width;
     }
@@ -105,6 +209,9 @@ public class ScreenConverter {
         this.width = width;
     }
 
+    /*
+    * Real screen height
+    * */
     public int getHeight() {
         return height;
     }

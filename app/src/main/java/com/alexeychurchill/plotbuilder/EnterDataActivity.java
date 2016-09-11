@@ -15,9 +15,9 @@ import java.util.Calendar;
 
 public class EnterDataActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String LOG_TAG = "EnterDataActivity";
-    private static final String DEFAULT_FUNCTION = "lg(x^3-1.2)/(x^2+cos(x))";
-    private static final String DEFAULT_FROM = "1.2";
-    private static final String DEFAULT_TO = "5.0";
+    private static final String DEFAULT_FUNCTION = "3*sin(x)";//"lg(x^3-1.2)/(x^2+cos(x))";
+    private static final String DEFAULT_FROM = "-3.0";//"1.2";
+    private static final String DEFAULT_TO = "9.0";//"5.0";
     private static final int CLICK_INTERVAL_MS = 1000;
     private static final int CLICK_COUNT = 5;
 

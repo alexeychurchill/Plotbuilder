@@ -13,7 +13,6 @@ import android.view.View;
 
 import com.alexeychurchill.plotbuilder.graphics.DoublePoint;
 import com.alexeychurchill.plotbuilder.graphics.ScreenConverter;
-import com.alexeychurchill.plotbuilder.math.MathParser;
 
 import java.util.List;
 
@@ -47,7 +46,9 @@ public class PlotView extends View {
     private OnPlotBuildListener mListener;
     //Scaling handling
     private float mScaleFactor = 1.0F;
-    private boolean mDrawScaling = false;
+    private float mScaleFocusX = 0.0F;
+    private float mScaleFocusY = 0.0F;
+    private boolean mScaleScalingDraw = false;
     private ScaleGestureDetector mScaleDetector;
 
     public PlotView(Context context) {
@@ -221,8 +222,10 @@ public class PlotView extends View {
         //Calling listener
         //Scaling flag being reset
         if (mListener != null) {
-            mListener.onPlotBuild(this, mConverter.getMinX(), mConverter.getMaxX(), canvas.getWidth(), mDrawScaling);
-            mDrawScaling = false;
+            double minX = mConverter.getScaledShiftedMinX();
+            double maxX = mConverter.getScaledShiftedMaxX();
+            mListener.onPlotBuild(this, minX, maxX, canvas.getWidth(), mScaleScalingDraw);
+            mScaleScalingDraw = false;
         }
         //Drawing bg
         drawBackground(canvas);
@@ -238,6 +241,11 @@ public class PlotView extends View {
     private void setupScreenConverter(Canvas canvas) {
         mConverter.setWidth(canvas.getWidth());
         mConverter.setHeight(canvas.getHeight());
+        mConverter.setScale(mScaleFactor);
+        double scaleFocusXRel = (mScaleFocusX / canvas.getWidth()) * 2.0 - 1.0;
+        double scaleFocusYRel = 1.0 - (mScaleFocusY / canvas.getHeight()) * 2.0;
+        mConverter.setShiftX(scaleFocusXRel);
+        mConverter.setShiftY(scaleFocusYRel);
     }
 
     /*
@@ -256,7 +264,7 @@ public class PlotView extends View {
     }
 
     private void drawXAxis(Canvas canvas) {
-        int top = mConverter.worldToScreenY(0.0);
+        int top = mConverter.toScreenY(0.0);
         if (top < 0 || top >= canvas.getHeight()) {
             return;
         }
@@ -273,10 +281,10 @@ public class PlotView extends View {
                 mPaint); //Bottom
         //Drawing ticks
         if (mTicksNeeded) {
-            int ticksStart = (int) Math.floor(mConverter.screenToWorldByX(0));
-            int ticksStop = (int) Math.ceil(mConverter.screenToWorldByX(canvas.getWidth()));
+            int ticksStart = (int) Math.floor(mConverter.toWorldByX(0));
+            int ticksStop = (int) Math.ceil(mConverter.toWorldByX(canvas.getWidth()));
             for (int tick = ticksStart; tick < ticksStop; tick++) {
-                double tickLeft = mConverter.worldToScreenX(tick);
+                double tickLeft = mConverter.toScreenX(tick);
                 canvas.drawLine((float) tickLeft, (float) top - mTickSize / 2.0F,
                         (float) tickLeft, (float) top + mTickSize / 2.0F,
                         mPaint);
@@ -285,7 +293,7 @@ public class PlotView extends View {
     }
 
     private void drawYAxis(Canvas canvas) {
-        int left = mConverter.worldToScreenX(0.0);
+        int left = mConverter.toScreenX(0.0);
         if (left < 0 || left >= canvas.getWidth()) {
             return;
         }
@@ -298,10 +306,10 @@ public class PlotView extends View {
         canvas.drawLine((float) left, 0.0F, (float) left + mArrowSize / 2.0F, mArrowSize / 2.0F, mPaint); //Right
         //Drawing ticks
         if (mTicksNeeded) { //As we need ticks in integer coords, we can represent world Ys as ints
-            int ticksStart = (int) Math.floor(mConverter.screenToWorldByY(canvas.getHeight()));
-            int ticksStop = (int) Math.ceil(mConverter.screenToWorldByY(0));
+            int ticksStart = (int) Math.floor(mConverter.toWorldByY(canvas.getHeight()));
+            int ticksStop = (int) Math.ceil(mConverter.toWorldByY(0));
             for (int tick = ticksStart; tick <= ticksStop; tick++) {
-                double tickTop = mConverter.worldToScreenY(tick);
+                double tickTop = mConverter.toScreenY(tick);
                 canvas.drawLine((float) left - mTickSize / 2.0F, (float) tickTop,
                         (float) left + mTickSize / 2.0F, (float) tickTop,
                         mPaint);
@@ -321,10 +329,10 @@ public class PlotView extends View {
         }
         //Plot path
         Path plotPath = new Path();
-        plotPath.moveTo(mConverter.worldToScreenX(mPlotPoints.get(0).getX()), mConverter.worldToScreenY(mPlotPoints.get(0).getY()));
+        plotPath.moveTo(mConverter.toScreenX(mPlotPoints.get(0).getX()), mConverter.toScreenY(mPlotPoints.get(0).getY()));
         for (DoublePoint point : mPlotPoints) {
-            int x = mConverter.worldToScreenX(point.getX());
-            int y = mConverter.worldToScreenY(point.getY());
+            int x = mConverter.toScreenX(point.getX());
+            int y = mConverter.toScreenY(point.getY());
             plotPath.lineTo(x, y);
         }
         //Draw
@@ -351,10 +359,10 @@ public class PlotView extends View {
         public boolean onScale(ScaleGestureDetector detector) {
             mPlotView.mScaleFactor *= detector.getScaleFactor();
             mPlotView.mScaleFactor = Math.max(PlotView.SCALE_MIN, Math.min(PlotView.SCALE_MAX, mPlotView.mScaleFactor));
-            mPlotView.mDrawScaling = true;
-            mPlotView.mConverter.setScale(mPlotView.mScaleFactor);
+            mPlotView.mScaleScalingDraw = true;
+            mPlotView.mScaleFocusX = detector.getFocusX();
+            mPlotView.mScaleFocusY = detector.getFocusY();
             mPlotView.invalidate();
-            Log.d("PV_SL", "mScaleFactor: " + mPlotView.mScaleFactor);
             return true;
         }
     }
