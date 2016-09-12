@@ -35,6 +35,36 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/et_to_hint"/>
+
+    <!-- Manual Y entering -->
+    <!--<CheckBox-->
+        <!--android:id="@+id/cbManualY"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/cb_manual_y_text" />-->
+<!---->
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/et_min_y"/>-->
+<!---->
+    <!--<EditText-->
+        <!--android:id="@+id/etYmin"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--/>-->
+<!---->
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/et_max_y"/>-->
+<!---->
+    <!--<EditText-->
+        <!--android:id="@+id/etYmax"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content" />-->
+
+    <!-- Error -->
     <TextView
         android:id="@+id/tvError"
         android:layout_width="wrap_content"

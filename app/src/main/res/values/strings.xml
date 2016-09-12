@@ -10,4 +10,9 @@
     <string name="btn_build_text">Build</string>
     <string name="err_wrong_number_format">Wrong number format!</string>
     <string name="err_not_enough_data">Not enough data!</string>
+    <string name="cb_manual_y_text">Manual entering Y</string>
+    <string name="et_min_y">Y<sup>min</sup>:</string>
+    <string name="et_max_y">Y<sup>max</sup>:</string>
+    <string name="et_min_y_hint">[Ymin,…</string>
+    <string name="et_max_y_hint">…,Ymax]</string>
 </resources>
